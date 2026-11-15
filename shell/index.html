@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html> 
+<html>
+<head> 
+<meta charset=UTF-8">
+<link rel="shortcut icon" type="image/x-icon" href="http://s10-4bn.sunnyday.jp/family/images/favicon.ico">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>貝殻記録</title> 
+<link rel="stylesheet" type="text/css" href="../_css/reset.css">
+<link rel="stylesheet" type="text/css" href="css/main.css">
+
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCb8PavWo2x5mnndiskqEET4tb5iUkkpIc&libraries=geometry"></script> 
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<script src="../_js/localPhotoset.js"></script> 
+<script src="../_js/jQuery.simplyModal.js"></script> 
+<script src="../_js/GM.lib.js"></script> 
+<script src="../_js/jQuery.showImgSequence.js"></script>
+<script src="../_js/imagesLoader.js"></script>
+<script src="../_js/loading.js"></script>
+<script src="js/local.js"></script> 
+
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+<style>
+  /* 画面の一番上に固定される細いプログレスバーの枠 */
+  #top-progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px; /* バーの太さ（pace.js風の細さ） */
+    background-color: transparent;
+    z-index: 9999; /* 地図やボタンより必ず一番手前に表示 */
+    display: none; /* 初期状態は隠しておく */
+  }
+
+  /* 実際に左から右へ伸びる色のついたバー */
+  #top-progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #29d; /* pace.js定番の鮮やかなブルー */
+    box-shadow: 0 0 10px #29d, 0 0 5px #29d; /* 少し光るおしゃれな演出 */
+    transition: width 0.15s ease-out; /* 伸びる動きを滑らかにする */
+  }
+</style>
+
+</head> 
+
+<body> 
+
+	<div id="initialize" >
+		<button id="selectLocalPhotoFolder">貝殻記録"フォルダを選択</button>
+	</div>
+
+	<!-- 画面上部のバー本体 -->
+	<div id="top-progress-container">
+	  <div id="top-progress-bar"></div>
+	</div>
+	
+	<dic id="photosets">
+
+		<div id="logout">ログアウト</div>
+	    <div id="photo-container">
+	        <div id="btn-top">Top</div>
+	        <div id="contents">
+	            <div id="photo-header">
+	                <div id="title">貝殻記録</div>
+	                <hr>
+	                <div id="photo-to-map-wrapper">
+	                    <div id="photo-to-map" class="button" >図鑑</div>
+	                </div>
+	            </div>
+	
+	            <div id="record-container"></div> 
+	    		<div id="book-container"></div>
+	        </div>
+	    </div>
+
+	</div>
+
+</body> 
+
+
+
+</html>

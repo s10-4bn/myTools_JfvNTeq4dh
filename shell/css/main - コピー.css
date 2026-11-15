@@ -1,0 +1,444 @@
+﻿@import url(http://fonts.googleapis.com/earlyaccess/notosansjp.css);
+
+/* 共通 */
+
+html { 
+    height: 100%; 
+}
+body { 
+    height: 100%; 
+    margin: 0; 
+    padding: 0;
+	background-color: #99ccff; 
+    font-family: "Noto Sans JP", arial, sans-serif;
+}
+
+ul li {
+	font-color: white;
+}
+
+.record-place {
+	background-color: #99ccff;
+	margin: 50px 10px 10px 10px;
+}
+
+	.record-place h2 {
+	    margin: 10px 0px 10px 0px;
+	    padding: 0px;
+	    font: bold 18px "Noto Sans JP", arial, sans-serif;
+	    color: #000000;
+	    text-align: left;
+	}
+	
+	.record-place p {
+	    margin: 0px;
+	    padding: 0px;
+	    font: normal 16px "Noto Sans JP", arial, sans-serif;
+	    color: #000000;
+	    text-align: left;
+		max-width: 800px;
+		background-color: #BBDDFF;
+	}
+
+.record-photoset {
+	list-style: none;
+	background-color: #202020;
+	margin: 10px 10px 10px 10px;
+}
+
+.book-name {
+    font: bold 18px arial,sans-serif;
+	margin: 10px;
+}
+
+	.book-name h2 {
+	    margin: 10px 0px 10px 0px;
+	    padding: 0px;
+	    font: bold 18px "Noto Sans JP", arial, sans-serif;
+	    color: #000000;
+	    text-align: left;
+	}
+	
+	.book-name p {
+	    margin: 0px;
+	    padding: 0px;
+	    font: normal 16px "Noto Sans JP", arial, sans-serif;
+	    color: #000000;
+	    text-align: left;
+		max-width: 800px;
+		background-color: #BBDDFF;
+	}
+
+.book-photoset {
+	list-style: none;
+	background-color: #202020;
+	margin: 10px 10px 10px 10px;
+}
+
+.book-mapClass {
+	margin: 0px 5px;
+	font: bold 14px arial,sans-serif;
+	color: #BBDDFF;
+	float: left;
+	cursor: pointer;
+}
+
+.book-dateClass {
+	font: 14px arial,sans-serif;
+	float: right;
+	color: white;
+   	margin: 0px 5px;
+}
+
+.book-imgClass {
+   	border: none;
+	cursor: pointer;
+}
+
+.book-titleClass {
+   	margin: 0px;
+	font: bold 16px arial,sans-serif;
+	color: white;
+	textAlign: 'left;  
+	textDecoration: none;
+}
+
+.book-captionClass {
+   	margin: 0px;
+	font: normal 14px arial,sans-serif;
+	color: white;
+	textAlign: 'left;  
+	textDecoration: none;
+}
+
+#title {
+    margin: 0px;
+    padding: 0px;
+    font: bold 28px "Noto Sans JP", arial, sans-serif;
+    color: #0000cc;
+    text-align: left;
+}
+
+#logout {
+	position: absolute;
+	z-index: 99;
+    top: 10px; 
+    right: 10px; 
+    font: bold 15px arial,sans-serif; color: #0000cc; text-align:right;
+	cursor: pointer;
+}
+
+hr {
+    margin: 0px;
+    padding: 5px;
+}
+.button {
+    text-align: center;
+    background-color: #0000cc;
+    color: #CCCCFF;
+    position: relative;
+    border-radius: 4px;
+    line-height: 30px;
+    -webkit-transition: none;
+    transition: none;
+    box-shadow: 2px 5px 5px 0px rgba(31, 31, 31, 0.5);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.button:hover {
+    top: -3px;
+    box-shadow: 2px 8px 5px 0px rgba(31, 31, 31, 0.5);
+    cursor: pointer;
+}
+
+.button:active {
+    top: 3px;
+    box-shadow: none;
+}
+
+/* photo-container */
+
+#photo-container {
+	position: relative;
+	width			: 100%;
+	margin:	0px;
+	padding: 0px;
+}
+
+#photo-header {
+//	width: 800px;
+    position: relative;
+    background: #99ccff;
+}
+
+#setInfo h1 {
+    margin: 0px;
+    padding: 0px;
+    font: bold 28px "Noto Sans JP", arial, sans-serif;
+    color: #0000cc;
+    text-align: left;
+}
+
+#setInfo p {
+    margin: 0px 10px 0px 10px;
+    padding: 0px; 
+    font: normal 16px "Noto Sans JP", arial, sans-serif;
+    color: black;
+    text-align: left;
+}
+
+#photo-to-map-wrapper {
+    position: absolute; 
+    top: 10px; 
+    right: 100px; 
+    width: 100px;
+}
+
+#slideshow-wrapper {
+    position: absolute; 
+    top: 10px; 
+    right: 2px; 
+    width: 95px;
+//    visibility: hidden;
+}
+
+#slideshow-wrapper a {
+    text-decoration: none;
+    color: #EEFFEE;
+}
+
+#blog-link {  
+   	padding: 10px 10px 10px 10px; 
+//    width: 100%;
+}
+
+#blog-link a {  
+	text-decoration: none;
+	font: bold 16px arial;
+	color: #0000cc;
+}
+
+#blog-link a:hover {  
+	color: #99ccff;
+	background: #0000cc;
+}
+
+
+#contents {
+    width: 100%;
+/*	overflow: auto; */
+//	overflow-x: hidden;
+//	background-color: #202020;
+}
+
+#photos {
+    width: 100%;
+}
+
+
+/* map-container */
+
+#map-container {
+    height: 100%;
+//    overflow: hidden;
+//    position: absolute;
+//    top: 0px;
+//    left: 0px;
+//    display: none;
+    visibility: hidden;
+}
+
+#map-canvas {
+    height: 100%;
+}
+
+#map-title {
+    text-align: center;
+    position: absolute;
+    top: 10px;
+    left: 150px;
+    right: 150px;
+}
+
+#map-title p {
+    display: inline-block;
+    background: rgba(255,255,255,0.9);
+    padding: 0px 10px 0px 10px;
+	font: bold 32px arial,sans-serif;
+	color: #0000cc;
+}
+
+#map-to-photo-wrapper {
+    position: absolute; 
+    top: 10px; 
+    right: 100px; 
+    width: 100px;
+}
+ 
+#btn-top {
+    position: fixed;
+    bottom: 15px;
+    right:20px;
+    padding: 0px 5px 0px 5px;
+    text-align: center;
+    background-color: #000000;
+    color: #fff;
+    border-radius: 4px;
+    line-height: 30px;
+    -webkit-transition: none;
+    transition: none;
+    box-shadow: 2px 5px 5px 0px rgba(31, 31, 31, 0.5);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+	z-index: 1; 
+}
+
+#btn-top:hover {
+    background-color: #333333;
+    bottom: 18px;
+    box-shadow: 2px 8px 5px 0px rgba(31, 31, 31, 0.5);
+    cursor: pointer;
+}
+
+.panoramaModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 800px;
+    height: 480px;
+}
+
+#slide-container {
+    height: 100%;
+    width: 100%;
+    text-align: left;
+    position: absolute;
+    top: 0;
+    overflow: hidden;
+/*    cursor: pointer; */
+    display: none;
+}
+
+#photoCanvas {
+    position: absolute;
+    top: 50px;
+}
+/*
+#book-container {
+    position: absolute;
+    top: 50px;
+}
+*/
+/*
+
+
+
+	#photoCanvas ul{
+	    background-color: black;
+	}
+
+#slide-container ul {
+    top: 0;
+    left: 0;
+    position: absolute;
+    display: table;
+}
+
+#slide-container ul li {
+    margin: 0px;
+    padding: 0px;
+    display: table-cell;
+    border: 1px;
+    text-align: center;
+    vertical-align: middle;
+    background-color: black;
+    background-image: url("http://s10-4bn.sunnyday.jp/_img/img-loading.gif");
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+#slide {
+    height: 100%;
+    width: 100%;
+}
+*/
+    #slideshow {
+      background-color: black;
+    }
+
+
+/*************************************
+	スマホ用
+**************************************/	
+@media only screen and ( max-width:800px ) {
+
+    #container {
+        position: relative;
+        width			: 100%;
+        padding: 0px;
+    }
+
+    #setInfo h1 {
+        font: bold 20px "Noto Sans JP", arial, sans-serif;
+    }
+
+    #setInfo p {
+
+        font: normal 14px "Noto Sans JP", arial, sans-serif;
+    }
+
+
+    #blog-link a {  
+        font: bold 14px arial;
+    }
+
+    #photo-to-map-wrapper {
+        position: relative; 
+        top: 0px; 
+        right: 0px; 
+        width: 100px;
+        float: left;
+        margin: 5px;
+    }
+
+    #slideshow-wrapper {
+        position: relative; 
+        top: 0px; 
+        right: 2px; 
+        width: 95px;
+        float: left;
+        margin: 5px;
+        visibility: hidden;
+    }
+
+    #map-title {
+//        top: 60px;
+        display: none;
+    }
+
+    #map-title p {
+        font: bold 20px arial,sans-serif;
+    }
+
+    #map-to-photo-wrapper {
+        position: absolute; 
+        top: 5px; 
+        right: 5px; 
+        width: 50px;
+    }
+
+    .panorama-wrapper img {
+        width: 100%;
+    }
+
+}
+
+
+@media only screen and ( max-width:1000px ) {
+
+    #download {
+        display: none;
+    }
+
+}

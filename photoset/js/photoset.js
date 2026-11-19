@@ -348,7 +348,7 @@ async function saveMeta() {
     }
 
     var photoChanges = [];
-    var descriptionChanged =
+	var photosetDescriptionChanged =
         my_photoset_description !== document.header_form.heder_description.value;
 
     // 画面の入力値と、読み込み時の値を比較
@@ -381,7 +381,7 @@ async function saveMeta() {
         }
     }
 
-    if (!descriptionChanged && photoChanges.length === 0) {
+    if (!photosetDescriptionChanged && photoChanges.length === 0) {
         alert("変更されていません。");
         return;
     }
@@ -429,7 +429,7 @@ async function saveMeta() {
         }
 
         // Photosetの説明を info.txt に保存（UTF-8）
-        if (descriptionChanged) {
+        if (photosetDescriptionChanged) {
             var infoFile = (photoset.photos || []).find(function(file) {
                 return file.name.toLowerCase() === "info.txt";
             });
@@ -452,7 +452,7 @@ async function saveMeta() {
         alert(
             "保存しました。\n" +
             "画像ファイル：" + savedPhotoCount + "枚\n" +
-            "info.txt：" + (descriptionChanged ? "保存" : "変更なし")
+            "info.txt：" + (photosetDescriptionChanged ? "保存" : "変更なし")
         );
 
     } catch (e) {

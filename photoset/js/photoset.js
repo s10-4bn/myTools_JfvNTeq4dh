@@ -25,6 +25,8 @@ var my_photoset_description;
 var sourceDirectoryHandle = null;
 
 // フォルダ内のファイルをサブフォルダも含めて再帰的に取得
+// フォルダ内のエントリー（ハンドル）だけを再帰的に取得。
+// File の実体は getInfo / getPhotos / 保存時に必要になった段階で取得する。
 async function collectLocalFiles(directoryHandle, relativeDirectory, result) {
     for await (const entry of directoryHandle.values()) {
         var relativePath = relativeDirectory
@@ -33,10 +35,12 @@ async function collectLocalFiles(directoryHandle, relativeDirectory, result) {
 
         if (entry.kind === "directory") {
             await collectLocalFiles(entry, relativePath, result);
-        } else if (entry.kind === "file") {
-            var file = await entry.getFile();
+        } else if (entry.kind === "file" &&
+                   (/\.(jpe?g)$/i.test(entry.name) || entry.name.toLowerCase() === "info.txt")) {
             result.push({
-                file: file,
+                name: entry.name,
+                kind: "file",
+                handle: entry,
                 relativePath: relativePath
             });
         }
@@ -82,10 +86,6 @@ window.onload = function () {
 	        var files = [];
 	        await collectLocalFiles(sourceDirectoryHandle, "", files); // File System Access API　で　filesを取得
 
-	        files = files.filter(function(item) {
-	            return /\.(jpe?g|txt)$/i.test(item.file.name);
-	        });
-
 	        if (!files.length) {
 	            alert("選択したフォルダに JPG / JPEG / info.txt がありません。");
 	            return;
@@ -97,11 +97,10 @@ window.onload = function () {
 	            photos: []
 	        };
 
-	        files.forEach(function(item) {
-	            // File にフォルダ内相対パスを保持させる
-	            item.file.localRelativePath = item.relativePath;
-	            photoset.photos.push(item.file);
-	        });
+	        // photoset.photos には File ではなくエントリー情報を保持する
+        files.forEach(function(item) {
+            photoset.photos.push(item);
+        });
 
 	        $("#initialize").css({ display: "none" });
 
@@ -137,7 +136,6 @@ function EditPhotos () {
             localTitle: photoset.title,
             localDescription: ""
         });
-
         flickrPhotoset.getInfo(function() {
 			my_photoset_title = flickrPhotoset.infoData.photoset.title._content;
 			my_photoset_description = flickrPhotoset.infoData.photoset.description._content;
@@ -430,10 +428,10 @@ async function saveMeta() {
 
         // Photosetの説明を info.txt に保存（UTF-8）
         if (photosetDescriptionChanged) {
-            var infoFile = (photoset.photos || []).find(function(file) {
-                return file.name.toLowerCase() === "info.txt";
+            var infoFile = (photoset.photos || []).find(function(item) {
+                return item.name.toLowerCase() === "info.txt";
             });
-            var infoPath = infoFile ? getLocalRelativePath(infoFile) : "info.txt";
+            var infoPath = infoFile ? infoFile.relativePath : "info.txt";
             var infoHandle;
             if (infoFile) {
                 infoHandle = await getFileHandleByPath(directoryHandle, infoPath);

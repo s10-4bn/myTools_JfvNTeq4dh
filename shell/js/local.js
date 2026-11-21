@@ -139,50 +139,36 @@ async function deleteHandle() {
 let globalFolderHandle = null; // 選択されたフォルダの鍵を保持するグローバル変数
 
 // フォルダ内のファイルをサブフォルダも含めて再帰的に取得
-async function collectLocalFiles(directoryHandle, relativeDirectory, result, jsonData) {
+async function collectLocalFiles(directoryHandle, relativeDirectory, result, jsonEntries) {
     for await (const entry of directoryHandle.values()) {
         var relativePath = relativeDirectory
             ? relativeDirectory + "/" + entry.name
             : entry.name;
 
         if (entry.kind === "directory") {
-            await collectLocalFiles(entry, relativePath, result, jsonData);
+            await collectLocalFiles(entry, relativePath, result, jsonEntries);
         } else if (entry.kind === "file") {
-            var file = await entry.getFile();
+            // 最初の走査では File オブジェクトを作らず、エントリーだけ保持する
+            var item = {
+                name: entry.name,
+                handle: entry,
+                relativePath: relativePath
+            };
 
-            // ファイル名が .json で終わる場合
             if (entry.name.toLowerCase().endsWith(".json")) {
-                const text = await file.text();
-                const parsed = JSON.parse(text);
-				jsonData.push(...parsed);
+                jsonEntries.push(item);
             } else {
-                // JPGなど、JSON以外のファイルはこれまで通り配列へ追加
-                result.push({
-                    file: file,
-                    relativePath: relativePath
-                });
+                result.push(item);
             }
 
-//console.log(totalFiles);
             counter++;
-            // 50件見つかるごとに、画面上部のバーを少し（10% → 30%）伸ばす
             if (counter % 50 === 0) {
-                let tempPercent =Math.floor(counter / totalFiles * 100);
+                let tempPercent = Math.floor(counter / totalFiles * 100);
                 $("#top-progress-bar").css("width", tempPercent + "%");
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
-
         }
     }
-
-
-	        // 選択したフォルダの鍵を IndexedDB に記憶させる
-//console.log(counter);
-	        await saveHandle({
-				handle: globalFolderHandle,
-				totalFiles: counter
-			});
-
 }
 
 window.onload = async function () {
@@ -272,26 +258,44 @@ async function executeFolderProcess() {
 	$("#initialize").hide(); 
 
 	var files = [];
-//	var SHELLS = [];
-	// File System Access API　で　filesを取得
+    var jsonEntries = [];
 
-	await collectLocalFiles(globalFolderHandle, "", files, SHELLS); 
-//console.log(SHELLS);
-	$("#photosets").show();
+    // 最初はファイルエントリーだけを取得する（getFile() は実行しない）
+    counter = 0;
+    await collectLocalFiles(globalFolderHandle, "", files, jsonEntries);
+
+    // JSON は図鑑データとして必要なため、走査後に JSON だけ読み込む
+    for (var j = 0; j < jsonEntries.length; j++) {
+        try {
+            var jsonFile = await jsonEntries[j].handle.getFile();
+            var parsed = JSON.parse(await jsonFile.text());
+            if (Array.isArray(parsed)) {
+                SHELLS.push(...parsed);
+            } else {
+                SHELLS.push(parsed);
+            }
+        } catch (e) {
+            console.error("JSONファイルの読み込みに失敗:", jsonEntries[j].name, e);
+        }
+    }
+
+    // 選択したフォルダのハンドルとファイル数を IndexedDB に記憶
+    await saveHandle({
+        handle: globalFolderHandle,
+        totalFiles: counter
+    });
+
+    $("#photosets").show();
     $("#top-progress-container").hide();
 
-	files = files.filter(function(item) {
-    	return /\.(jpe?g|txt)$/i.test(item.file.name);
+    // JPG / JPEG / info.txt のエントリーだけを残す
+    files = files.filter(function(item) {
+        return /\.(jpe?g|txt)$/i.test(item.name);
     });
 
     if (!files.length) {
         return;
     }
-
-	files = files.map(function(item) {
-	    item.file.localRelativePath = item.relativePath;
-	    return item.file; 
-	});
 
 
     // ==================================================
@@ -303,7 +307,7 @@ async function executeFolderProcess() {
 
     $.each(files, function(i, file) {
 
-        var path = file.localRelativePath || file.name;
+        var path = file.relativePath || file.name;
 
         var parts = path.split("/");
 
@@ -463,13 +467,16 @@ async function executeFolderProcess() {
             );
 //console.log(set_title,recordSets[index].description);  // NG
 //console.log(flickrPhotoset[index]); // NG
-        });
 
-        // ----------------------------------------------
-        // 写真取得
-        // ----------------------------------------------
+            // getInfo() の完了後に写真を取得する。
+            // getLocalInfo() は非同期処理なので、外側で並行実行すると
+            // getPhotos() 側で infoData.photoset が未設定になる。
 
-        flickrPhotoset[index].getPhotos(function() {
+            // ----------------------------------------------
+            // 写真取得
+            // ----------------------------------------------
+
+            flickrPhotoset[index].getPhotos(function() {
 
             count++;
 //console.log(flickrPhotoset[index]);
@@ -618,7 +625,9 @@ async function executeFolderProcess() {
 
             }
 
-        });
+            }); // getPhotos 完了
+
+        }); // getInfo 完了後に getPhotos を開始
 
     });
 

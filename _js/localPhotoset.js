@@ -189,14 +189,15 @@ getLocalInfo: async function (func) {
     // -----------------------------
     // info.txt を探す
     // -----------------------------
-    var infoFile = files.find(function(file) {
-        return file.name.toLowerCase() === "info.txt";
+    var infoEntry = files.find(function(item) {
+        return item.name.toLowerCase() === "info.txt";
     });
 
     var description = "";
 //console.log(files);
-    if (infoFile) {
+    if (infoEntry) {
         try {
+            var infoFile = await infoEntry.handle.getFile();
             description = await infoFile.text();
         } catch (e) {
             console.error("info.txt の読み込みに失敗:", e);
@@ -208,35 +209,22 @@ getLocalInfo: async function (func) {
     // ファイル名に "!" を含む画像を探す
     // -----------------------------
 
-    var primaryFile = files.find(function(file) {
-
-        return (
-            file.name.indexOf("!") !== -1 &&
-            /\.(jpe?g)$/i.test(file.name)
-        );
-
+    var primaryEntry = files.find(function(item) {
+        return item.name.indexOf("!") !== -1 &&
+               /\.(jpe?g)$/i.test(item.name);
     });
 
-	if (!primaryFile) {
-
-    	primaryFile = files.find(function(file) {
-	
-        return /\.(jpe?g)$/i.test(file.name);
-
-    });
-
-}
-
-//});
-
-    // -----------------------------
-    // 代表画像のURLを作る
-    // -----------------------------
-    var primaryUrl = "";
-
-    if (primaryFile) {
-        primaryUrl = URL.createObjectURL(primaryFile);
+    if (!primaryEntry) {
+        primaryEntry = files.find(function(item) {
+            return /\.(jpe?g)$/i.test(item.name);
+        });
     }
+
+    // 代表画像の実体は getInfo が必要とするため、この時点でのみ取得
+    var primaryFile = primaryEntry
+        ? await primaryEntry.handle.getFile()
+        : null;
+    var primaryUrl = primaryFile ? URL.createObjectURL(primaryFile) : "";
 
     // -----------------------------------------
     // Flickrと同じ構造にする
@@ -360,12 +348,14 @@ getLocalPhotos: async function (func) {
 
     for (var i = 0; i < files.length; i++) {
 
-        var file = files[i];
+        var fileEntry = files[i];
 
-        if (!file.name.match(/\.(jpg|jpeg)$/i)) {
+        if (!fileEntry.name.match(/\.(jpg|jpeg)$/i)) {
             continue;
         }
 
+        // getPhotos が呼ばれた段階で写真ファイルを取得
+        var file = await fileEntry.handle.getFile();
         var url = URL.createObjectURL(file);
 
 
@@ -440,12 +430,7 @@ getLocalPhotos: async function (func) {
 
             // 元ファイルと、選択フォルダ内での相対パス
             localFile: file,
-            localRelativePath: (function() {
-                var path = file.webkitRelativePath || file.name;
-                var parts = path.split("/").filter(Boolean);
-                if (parts.length > 1 && parts[0] === self.localTitle) parts.shift();
-                return parts.join("/");
-            })(),
+            localRelativePath: fileEntry.relativePath,
 
             folderName: self.localTitle
         };

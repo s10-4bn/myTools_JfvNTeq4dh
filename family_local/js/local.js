@@ -91,41 +91,26 @@ async function deleteHandle() {
 // File System Access API で選択した入力元フォルダ
 let globalFolderHandle = null; // 選択されたフォルダの鍵を保持するグローバル変数
 
-// フォルダ内のファイルをサブフォルダも含めて再帰的に取得
+// フォルダ内のエントリーだけを再帰的に取得する。
+// getFile() はここでは呼ばず、必要になった時点で getInfo()/getPhotos() が実行する。
 async function collectLocalFiles(directoryHandle, relativeDirectory, result) {
     for await (const entry of directoryHandle.values()) {
-        var relativePath = relativeDirectory
+        const relativePath = relativeDirectory
             ? relativeDirectory + "/" + entry.name
             : entry.name;
 
         if (entry.kind === "directory") {
             await collectLocalFiles(entry, relativePath, result);
-        } else if (entry.kind === "file") {
-            var file = await entry.getFile();
-            result.push({
-                file: file,
-                relativePath: relativePath
-            });
-
+        } else if (entry.kind === "file" && /\.(jpe?g|txt)$/i.test(entry.name)) {
+            result.push({ name: entry.name, handle: entry, relativePath: relativePath });
             counter++;
-            // 50件見つかるごとに、画面上部のバーを少し（10% → 30%）伸ばす
-            if (counter % 50 === 0) {
-                let tempPercent =Math.floor(counter / totalFiles * 100);
+            if (counter % 200 === 0) {
+                const tempPercent = Math.min(99, Math.floor(counter / totalFiles * 100));
                 $("#top-progress-bar").css("width", tempPercent + "%");
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
-
         }
     }
-
-
-	        // 選択したフォルダの鍵を IndexedDB に記憶させる
-//console.log(counter);
-	        await saveHandle({
-				handle: globalFolderHandle,
-				totalFiles: counter
-			});
-
 }
 
 window.onload = async function () {
@@ -211,139 +196,67 @@ async function resumeFolder() {
 
 
 async function executeFolderProcess() {
+    try {
+        $("#top-progress-container").show();
+        $("#top-progress-bar").css("width", "0%");
+        $("#initialize").hide();
 
-//	    try {
+        counter = 0;
+        const entries = [];
+        await collectLocalFiles(globalFolderHandle, "", entries);
 
-    		$("#top-progress-container").show();
-			$("#initialize").hide(); 
+        await saveHandle({ handle: globalFolderHandle, totalFiles: counter });
 
-	        var files = [];
-			// File System Access API　で　filesを取得
-console.log(totalFiles);
-	        await collectLocalFiles(globalFolderHandle, "", files); 
+        $("#top-progress-bar").css("width", "100%");
+        $("#collections").show();
+        $("#top-progress-container").hide();
 
-			$("#collections").show();
-		    $("#top-progress-container").hide();
+        if (!entries.length) {
+            alert("選択したフォルダに JPG / JPEG / info.txt がありません。");
+            return;
+        }
 
-	        files = files.filter(function(item) {
-	            return /\.(jpe?g|txt)$/i.test(item.file.name);
-	        });
+        // File オブジェクトではなく FileSystemFileHandle を保持する
+        entries.sort(function(a, b) {
+            const pathA = a.relativePath.split("/");
+            const pathB = b.relativePath.split("/");
+            let result = (pathB[1] || "").localeCompare(pathA[1] || "");
+            if (result !== 0) return result;
+            result = (pathB[2] || "").localeCompare(pathA[2] || "");
+            if (result !== 0) return result;
+            return a.name.localeCompare(b.name);
+        });
 
-	        if (!files.length) {
-	            alert("選択したフォルダに JPG / JPEG / info.txt がありません。");
-	            return;
-	        }
+        collections = [];
+        $.each(entries, function(i, entry) {
+            const parts = entry.relativePath.split("/");
+            if (parts.length < 3) return;
 
-			files = files.map(function(item) {
-			    item.file.localRelativePath = item.relativePath;
-			    return item.file; 
-			});
+            const collectionId = parts[0];
+            const photosetId = parts[1];
 
-		    files.sort(function(a, b) {
-		
-		        var pathA = a.localRelativePath.split("/");
-		        var pathB = b.localRelativePath.split("/");
-		
-		        // 最初のフォルダ名
-		        var folderA1 = pathA[1] || "";
-		        var folderB1 = pathB[1] || "";
-		
-		        var result = folderB1.localeCompare(folderA1);
-		
-		        if (result !== 0) {
-		            return result;
-		        }
-		
-		        // 次のフォルダ名
-		        var folderA2 = pathA[2] || "";
-		        var folderB2 = pathB[2] || "";
-		
-		        return folderB2.localeCompare(folderA2);
-		
-		        if (result !== 0) {
-		            return result;
-		        }
-		
-		        // 3. ファイル名：昇順
-		        return a.name.localeCompare(b.name);
-		
-		    });
-	
-			collections = [];
-			$.each(files, function(i, file) {
-			
-			        // フォルダを含む相対パス
-					var path = file.localRelativePath;
-			
-			        // 例：
-			        // "2011/2011-01-01 東京/DSC_0001.jpg"
-			        var parts = path.split("/");
-			
-			        // collection / photoset / photo の3階層でないものは除外
-			        if (parts.length < 3) {
-			            return;
-			        }
-			
-			        var collectionId = parts[0];
-			        var photosetId = parts[1];
-			        var fileName = parts[2];
-			
-			        // -----------------------------------
-			        // collectionを探す
-			        // -----------------------------------
-			
-			        var collection = collections.find(function(item) {
-			            return item.id === collectionId;
-			        });
-			
-			        // なければ新規作成
-			        if (!collection) {
-			            collection = {
-			                id: collectionId,
-			                title: collectionId,
-			                photosets: []
-			            };
-			
-			            collections.push(collection);
-			
-					}
-			
-			        // -----------------------------------
-			        // photosetを探す
-			        // -----------------------------------
-			
-			        var photoset = collection.photosets.find(function(item) {
-			            return item.id === photosetId;
-			        });
-			
-			        // なければ新規作成
-			        if (!photoset) {
-			
-			            photoset = {
-			                id: photosetId,
-			                title: photosetId,
-			                photos: []
-			            };
-			
-			            collection.photosets.push(photoset);
-			        }
-			
-			        photoset.photos.push(file);
-			
-			    });
+            let collection = collections.find(item => item.id === collectionId);
+            if (!collection) {
+                collection = { id: collectionId, title: collectionId, photosets: [] };
+                collections.push(collection);
+            }
 
-			getSetInfo(collection_title);
+            let photoset = collection.photosets.find(item => item.id === photosetId);
+            if (!photoset) {
+                photoset = { id: photosetId, title: photosetId, photos: [] };
+                collection.photosets.push(photoset);
+            }
+            photoset.photos.push(entry);
+        });
 
-//	    } catch (e) {
-//	        if (e && e.name === "AbortError") return;
-//	        console.error("フォルダ読み込みエラー:", e);
-//	        alert("フォルダを読み込めませんでした。\n" + (e.message || e));
-//	    }
-
-
-
+        getSetInfo(collection_title);
+    } catch (e) {
+        console.error("フォルダ読み込みエラー:", e);
+        alert("フォルダを読み込めませんでした。\n" + (e.message || e));
+        $("#top-progress-container").hide();
+        $("#initialize").show();
+    }
 }
-
 
 
 function getSetInfo(collection_title) {

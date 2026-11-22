@@ -450,39 +450,31 @@ function List_search() {
 				var photoset_id_tmp = photoset.id;
 				var photoset_title_tmp = photoset.title;
 
-		        flickrPhotoset_tmp = new FlickrPhotoset({
-		            localMode: true,
-		            localFiles: photoset.photos,
-		            localTitle: photoset.title,
-		            localDescription: ""
-		        });
-	
-		        flickrPhotoset_tmp.getInfo(function() {
-					idx++;
-			        flickrPhotosets[idx] = new FlickrPhotoset({
-			            localMode: true,
-			            localFiles: photoset.photos,
-			            localTitle: photoset.title,
-			            localDescription: ""
-			        });
-			        flickrPhotosets[idx].getInfo(function() {
-						photoset_id[idx] = photoset_id_tmp;
-						photoset_title[idx] = photoset_title_tmp;
-						var photoset_primary_id_tmp = "";
-						var photoset_primary_secret_tmp = "";
-						photoset_primary_id[idx] = "";
-						photoset_primary_secret[idx] = "";
-						photoset_primary_server[idx] = "";
-						photoset_primary_farm[idx] = "";
-						photoset_primaryUrl[idx] = "";
-						if (flickrPhotoset_tmp.infoData.photoset.primaryUrl) {
-							photoset_primaryUrl[idx] = flickrPhotosets[idx].infoData.photoset.primaryUrl;
-						}
-						photoset_description[idx] = flickrPhotosets[idx].infoData.photoset.description._content;
-	
-						ShowList();
-			        });
-		        });
+		        // セットごとの番号とインスタンスを保持し、非同期処理の順序ずれを防ぐ
+                var currentIdx = ++idx;
+                var currentPhotoset = new FlickrPhotoset({
+                    localMode: true,
+                    localFiles: photoset.photos,
+                    localTitle: photoset.title,
+                    localDescription: ""
+                });
+                flickrPhotosets[currentIdx] = currentPhotoset;
+                currentPhotoset.getInfo(function() {
+                    var info = currentPhotoset.infoData && currentPhotoset.infoData.photoset;
+                    if (!info) {
+                        console.error("写真セット情報を取得できません:", photoset.title, currentPhotoset.infoData);
+                        return;
+                    }
+                    photoset_id[currentIdx] = photoset_id_tmp;
+                    photoset_title[currentIdx] = photoset_title_tmp;
+                    photoset_primary_id[currentIdx] = "";
+                    photoset_primary_secret[currentIdx] = "";
+                    photoset_primary_server[currentIdx] = "";
+                    photoset_primary_farm[currentIdx] = "";
+                    photoset_primaryUrl[currentIdx] = info.primaryUrl || "";
+                    photoset_description[currentIdx] = info.description ? info.description._content : "";
+                    ShowList();
+                });
 
 			}
 
